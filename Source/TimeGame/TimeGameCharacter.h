@@ -53,6 +53,10 @@ protected:
 	/** Called for movement input */
 	void Move(const FInputActionValue& Value);
 
+	/** Allows Character to Sprint */
+	void Sprint();
+	void StopSprinting();
+
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
 
@@ -66,6 +70,9 @@ public:
 	USkeletalMeshComponent* GetMesh1P() const { return Mesh1P; }
 	/** Returns FirstPersonCameraComponent subobject **/
 	UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
+
+private:
+	double maxWalkSpeedReset;
 
 };
 
