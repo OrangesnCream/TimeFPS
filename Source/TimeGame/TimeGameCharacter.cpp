@@ -10,6 +10,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
 #include "Engine/LocalPlayer.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -36,6 +37,7 @@ ATimeGameCharacter::ATimeGameCharacter()
 	//Mesh1P->SetRelativeRotation(FRotator(0.9f, -19.19f, 5.2f));
 	Mesh1P->SetRelativeLocation(FVector(-30.f, 0.f, -150.f));
 
+	maxWalkSpeedReset = GetCharacterMovement()->MaxWalkSpeed;
 }
 
 void ATimeGameCharacter::BeginPlay()
@@ -58,6 +60,10 @@ void ATimeGameCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 		// Moving
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ATimeGameCharacter::Move);
 
+		// Sprinting
+		PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &ATimeGameCharacter::Sprint);
+		PlayerInputComponent->BindAction("Sprint", IE_Released, this, &ATimeGameCharacter::StopSprinting);
+
 		// Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ATimeGameCharacter::Look);
 	}
@@ -79,6 +85,16 @@ void ATimeGameCharacter::Move(const FInputActionValue& Value)
 		AddMovementInput(GetActorForwardVector(), MovementVector.Y);
 		AddMovementInput(GetActorRightVector(), MovementVector.X);
 	}
+}
+
+void ATimeGameCharacter::Sprint()
+{
+	GetCharacterMovement()->MaxWalkSpeed *= 2;
+}
+
+void ATimeGameCharacter::StopSprinting()
+{
+	GetCharacterMovement()->MaxWalkSpeed = maxWalkSpeedReset;
 }
 
 void ATimeGameCharacter::Look(const FInputActionValue& Value)
