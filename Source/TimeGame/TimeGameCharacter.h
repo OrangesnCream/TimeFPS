@@ -6,12 +6,13 @@
 #include "GameFramework/Character.h"
 #include "Logging/LogMacros.h"
 #include "TimeGameCharacter.generated.h"
-
+//#include "TimeManager.h"
 class UInputComponent;
 class USkeletalMeshComponent;
 class UCameraComponent;
 class UInputAction;
 class UInputMappingContext;
+class ATimeManager;
 struct FInputActionValue;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
@@ -70,9 +71,13 @@ public:
 	USkeletalMeshComponent* GetMesh1P() const { return Mesh1P; }
 	/** Returns FirstPersonCameraComponent subobject **/
 	UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
+	ATimeManager* FindTimeManager();
+	ATimeManager* timeManager;
+	void slowTime();
 
 private:
 	double maxWalkSpeedReset;
+	
 
 };
 

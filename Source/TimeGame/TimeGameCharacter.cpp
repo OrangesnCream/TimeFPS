@@ -11,7 +11,9 @@
 #include "InputActionValue.h"
 #include "Engine/LocalPlayer.h"
 #include "GameFramework/CharacterMovementComponent.h"
-
+#include "Engine/World.h"
+#include "EngineUtils.h"
+#include "TimeManager.h"
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
 //////////////////////////////////////////////////////////////////////////
@@ -44,6 +46,8 @@ void ATimeGameCharacter::BeginPlay()
 {
 	// Call the base class  
 	Super::BeginPlay();
+
+	timeManager = FindTimeManager();
 }
 
 //////////////////////////////////////////////////////////////////////////// Input
@@ -66,6 +70,9 @@ void ATimeGameCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 
 		// Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ATimeGameCharacter::Look);
+	
+
+		PlayerInputComponent->BindAction("Ability", IE_Pressed, this, &ATimeGameCharacter::slowTime);
 	}
 	else
 	{
@@ -107,5 +114,21 @@ void ATimeGameCharacter::Look(const FInputActionValue& Value)
 		// add yaw and pitch input to controller
 		AddControllerYawInput(LookAxisVector.X);
 		AddControllerPitchInput(LookAxisVector.Y);
+	}
+}
+
+ATimeManager* ATimeGameCharacter::FindTimeManager()
+{
+	for (TActorIterator<ATimeManager> It(GetWorld()); It; ++It)
+	{
+		return *It;  //find the timemanager
+	}
+
+	// If no TimeManager is found return nullptr
+	return nullptr;
+}
+void ATimeGameCharacter::slowTime() {
+	if (timeManager) {
+		timeManager->GlobalActorSlowdown();
 	}
 }

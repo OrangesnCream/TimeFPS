@@ -3,11 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Actor.h"
+#include "GameFramework/Pawn.h"
+
 #include "TimeManager.generated.h"
 
 UCLASS()
-class TIMEGAME_API ATimeManager : public AActor
+class TIMEGAME_API ATimeManager : public APawn
 {
 	GENERATED_BODY()
 	
@@ -18,8 +19,17 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+	TArray<AActor*> ActorsToAffect;
+	TArray<AStaticMeshActor*> StaticActorsToAffect;
+	void HandleActorSpawned(AActor* SpawnedActor);
 
+	UFUNCTION()
+	void HandleActorDestroyed(AActor* DestroyedActor);
+	
+	
 public:	
+	void GlobalActorSlowdown();
+	//virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 	
@@ -27,9 +37,9 @@ public:
 private:
 	//add values here later for preset changes
 	//these values will be used to set the 
-	float globalTime;
+	float globalTime=0.5;
 	float playerTime;
 	float enemyTime;
 	float bulletTime;
-
+	bool  abilityActive=false;
 };
