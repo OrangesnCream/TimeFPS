@@ -10,6 +10,9 @@
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
 #include "Engine/LocalPlayer.h"
+#include "Engine/World.h"
+#include "EngineUtils.h"
+#include "TimeManager.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
@@ -44,6 +47,8 @@ void ATimeGameCharacter::BeginPlay()
 {
 	// Call the base class  
 	Super::BeginPlay();
+
+	timeManager = FindTimeManager();
 
 	// Initialize the Character's state machine
 	StateMachine = NewObject<UBasicStateMachine>(this);
@@ -80,11 +85,23 @@ void ATimeGameCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 
 		// Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ATimeGameCharacter::Look);
+
+		// TimeDilation
+		PlayerInputComponent->BindAction("Ability", IE_Pressed, this, @ATimeGameCharacter::slowTime);
 	}
 	else
 	{
 		UE_LOG(LogTemplateCharacter, Error, TEXT("'%s' Failed to find an Enhanced Input Component! This template is built to use the Enhanced Input system. If you intend to use the legacy system, then you will need to update this C++ file."), *GetNameSafe(this));
 	}
+}
+
+ATimeManager* ATimeGameCharacter::FindTimeManager()
+{
+	return nullptr;
+}
+
+void ATimeGameCharacter::slowTime()
+{
 }
 
 
@@ -121,5 +138,20 @@ void ATimeGameCharacter::Look(const FInputActionValue& Value)
 		// add yaw and pitch input to controller
 		AddControllerYawInput(LookAxisVector.X);
 		AddControllerPitchInput(LookAxisVector.Y);
+	}
+}
+
+ATimeManager* ATimeGameCharacter::FindTimeManager()
+{
+	for (TActorIterator<ATimeManager> It(GetWorld()); It; ++It)
+	{
+		return *It;  //find the timemanager
+	}
+	// If no TimeManager is found return nullptr
+	return nullptr;
+}
+void ATimeGameCharacter::slowTime() {
+	if (timeManager) {
+		timeManager->GlobalActorSlowdown();
 	}
 }

@@ -18,6 +18,10 @@ void ATimeManager::BeginPlay()
 	
 }
 
+void ATimeManager::GlobalActorSlowdown()
+{
+}
+
 // Called every frame
 void ATimeManager::Tick(float DeltaTime)
 {
