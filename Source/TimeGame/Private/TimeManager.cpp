@@ -5,6 +5,8 @@
 #include "Engine/World.h"
 #include "EngineUtils.h"
 #include "Engine/StaticMeshActor.h"
+#include "../TimeGameProjectile.h"
+#include "../TimeGameCharacter.h"
 
 // Sets default values
 ATimeManager::ATimeManager()
@@ -23,7 +25,7 @@ void ATimeManager::BeginPlay()
     for (TActorIterator<AActor> It(GetWorld()); It; ++It)
     {
         AActor* Actor = *It;
-
+        Actor->OnDestroyed.AddDynamic(this, &ATimeManager::HandleActorDestroyed);
         ActorsToAffect.Add(Actor);
 
     }
@@ -31,9 +33,10 @@ void ATimeManager::BeginPlay()
     {
         //I added this because it wasn't adding the cube -_-
         AStaticMeshActor* ActorS = *It;
+        ActorS->OnDestroyed.AddDynamic(this, &ATimeManager::HandleActorDestroyed);
         //custom_time_dilation
-            UE_LOG(LogTemp, Warning, TEXT("Found Static Mesh Actor: "));
-            StaticActorsToAffect.Add(ActorS);
+        UE_LOG(LogTemp, Warning, TEXT("Found Static Mesh Actor: "));
+        StaticActorsToAffect.Add(ActorS);
 
     }
 
@@ -52,36 +55,91 @@ void ATimeManager::HandleActorSpawned(AActor* SpawnedActor)
    // {
         ActorsToAffect.Add(SpawnedActor);
         if (abilityActive) {
-            SpawnedActor->CustomTimeDilation = globalTime;
+            if (SpawnedActor->IsA(ATimeGameProjectile::StaticClass())) {
+                SpawnedActor->CustomTimeDilation = bulletTime;
+            }
+            else if (SpawnedActor->IsA(ATimeGameCharacter::StaticClass())) {
+                SpawnedActor->CustomTimeDilation = playerTime;
+            }
+            else {
+                SpawnedActor->CustomTimeDilation = globalTime;
+            }
         }
         SpawnedActor->OnDestroyed.AddDynamic(this, &ATimeManager::HandleActorDestroyed);
 
    // }
 }
 
-/*
-* this broke the player controls
-void ATimeManager::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
-    Super::SetupPlayerInputComponent(PlayerInputComponent);
-    // Bind input actions to functions
-    PlayerInputComponent->BindAction("Ability", IE_Pressed, this, &ATimeManager::GlobalActorSlowdown);
-}
-*/
+
 void ATimeManager::GlobalActorSlowdown(){
-    if (abilityActive) {
+    if (abilityActive) {//resets when Ability is used again
         for (AActor* Actor : ActorsToAffect)
         {
-            Actor->CustomTimeDilation = 1.0;   
+            Actor->CustomTimeDilation = 1.0;  
+
         }
+
+
+        //loop for static meshes
+        for (AStaticMeshActor* Actor : StaticActorsToAffect)
+        {
+            Actor->CustomTimeDilation = 1.0;
+
+            if (Actor->GetStaticMeshComponent())
+            {
+
+                UStaticMeshComponent* MeshComponent = Actor->GetStaticMeshComponent();
+                if (MeshComponent->Mobility != EComponentMobility::Movable) {//check if static mesh is actually a thing we can move
+                    continue;
+                }
+
+
+                FVector LinearVelocity = MeshComponent->GetPhysicsLinearVelocity();
+                MeshComponent->SetPhysicsLinearVelocity(LinearVelocity/globalTime);
+
+                FVector AngularVelocity = MeshComponent->GetPhysicsAngularVelocityInDegrees();
+                MeshComponent->SetPhysicsAngularVelocityInDegrees(AngularVelocity / globalTime);
+            }
+        }
+
         abilityActive = false;
         return;
     }
 
+
+    abilityActive = true;
     for (AActor* Actor : ActorsToAffect)
+    {//loop that applies slow down
+        if (Actor->IsA(ATimeGameProjectile::StaticClass())) {
+            Actor->CustomTimeDilation = bulletTime;
+        }
+        else if (Actor->IsA(ATimeGameCharacter::StaticClass())) {
+            Actor->CustomTimeDilation = playerTime;
+        }
+        else {
+            Actor->CustomTimeDilation = globalTime;
+        }
+        
+    }
+
+    //seperate loop for staticmesh actors in scene
+    for (AStaticMeshActor* Actor : StaticActorsToAffect)
     {
         Actor->CustomTimeDilation = globalTime;
-        abilityActive = true;
+
+        if (Actor->GetStaticMeshComponent())
+        {
+           
+            UStaticMeshComponent* MeshComponent = Actor->GetStaticMeshComponent();
+            if (MeshComponent->Mobility != EComponentMobility::Movable) {//check if static mesh is actually a thing we can move
+                continue;
+            }
+            FVector LinearVelocity = MeshComponent->GetPhysicsLinearVelocity();
+            MeshComponent->SetPhysicsLinearVelocity(LinearVelocity * globalTime);
+
+            FVector AngularVelocity = MeshComponent->GetPhysicsAngularVelocityInDegrees();
+            MeshComponent->SetPhysicsAngularVelocityInDegrees(AngularVelocity * globalTime);
+        }
     }
 }
 

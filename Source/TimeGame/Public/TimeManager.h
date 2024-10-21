@@ -38,8 +38,8 @@ private:
 	//add values here later for preset changes
 	//these values will be used to set the 
 	float globalTime=0.5;
-	float playerTime;
-	float enemyTime;
-	float bulletTime;
+	float playerTime=1.0;
+	float enemyTime=0.3;
+	float bulletTime=0.4;
 	bool  abilityActive=false;
 };
