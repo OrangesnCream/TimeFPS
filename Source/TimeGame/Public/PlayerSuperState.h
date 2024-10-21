@@ -14,4 +14,10 @@ class TIMEGAME_API UPlayerSuperState : public UStateBase
 {
 	GENERATED_BODY()
 	
+public:
+	UPlayerSuperState();
+
+	virtual void EnterState() override;
+	virtual void ExitState() override;
+	virtual void UpdateState(float DeltaTime) override;
 };

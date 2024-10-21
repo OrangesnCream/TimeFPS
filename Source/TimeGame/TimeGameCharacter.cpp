@@ -44,6 +44,20 @@ void ATimeGameCharacter::BeginPlay()
 {
 	// Call the base class  
 	Super::BeginPlay();
+
+	// Initialize the Character's state machine
+	StateMachine = NewObject<UBasicStateMachine>(this);
+	CurrentStateTag = FGameplayTag::RequestGameplayTag(FName("PlayerState.Ground.Idle"));
+	StateMachine->RequestState(CurrentStateTag);
+}
+
+void ATimeGameCharacter::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	// Update the current state
+	if (UStateBase* CurrentState = StateMachine->GetStateFromCache(CurrentStateTag))
+		CurrentState->UpdateState(DeltaTime);
 }
 
 //////////////////////////////////////////////////////////////////////////// Input

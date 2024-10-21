@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
+#include "GameplayTagsClasses.h"
 #include "StateBase.generated.h"
 
 /**
@@ -15,11 +16,11 @@ class TIMEGAME_API UStateBase : public UObject
 	GENERATED_BODY()
 	
 public:
-	virtual void EnterState()
-		PURE_VIRTUAL(UStateBase::EnterState, );
-	virtual void ExitState()
-		PURE_VIRTUAL(UStateBase::ExitState, );
-	virtual void UpdateState()
-		PURE_VIRTUAL(UStateBase::UpdateState, );
+	UStateBase();
 
+	virtual void EnterState();
+	virtual void ExitState();
+	virtual void UpdateState(float DeltaTime);
+
+	FGameplayTag StateTag;
 };

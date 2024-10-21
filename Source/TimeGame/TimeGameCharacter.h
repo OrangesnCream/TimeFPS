@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Logging/LogMacros.h"
+#include "BasicStateMachine.h"
 #include "TimeGameCharacter.generated.h"
 
 class UInputComponent;
@@ -42,12 +43,16 @@ public:
 
 protected:
 	virtual void BeginPlay();
+	virtual void Tick(float DeltaTime) override;
 
 public:
 		
 	/** Look Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* LookAction;
+
+	// State Machine for managing character states
+	UPROPERTY() UBasicStateMachine* StateMachine;
 
 protected:
 	/** Called for movement input */
@@ -73,6 +78,7 @@ public:
 
 private:
 	double maxWalkSpeedReset;
+	FGameplayTag CurrentStateTag;
 
 };
 

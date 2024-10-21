@@ -3,3 +3,21 @@
 
 #include "PlayerGroundState.h"
 
+UPlayerGroundState::UPlayerGroundState()
+{
+}
+
+void UPlayerGroundState::EnterState()
+{
+    Super::EnterState();
+}
+
+void UPlayerGroundState::ExitState()
+{
+    Super::ExitState();
+}
+
+void UPlayerGroundState::UpdateState(float DeltaTime)
+{
+    Super::UpdateState(DeltaTime);
+}
