@@ -14,7 +14,9 @@
 #include "EngineUtils.h"
 #include "TimeManager.h"
 #include "GameFramework/CharacterMovementComponent.h"
-
+#include "Engine/World.h"
+#include "EngineUtils.h"
+#include "TimeManager.h"
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
 //////////////////////////////////////////////////////////////////////////
@@ -85,9 +87,9 @@ void ATimeGameCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 
 		// Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ATimeGameCharacter::Look);
+	
 
-		// TimeDilation
-		PlayerInputComponent->BindAction("Ability", IE_Pressed, this, @ATimeGameCharacter::slowTime);
+		PlayerInputComponent->BindAction("Ability", IE_Pressed, this, &ATimeGameCharacter::slowTime);
 	}
 	else
 	{
@@ -147,6 +149,7 @@ ATimeManager* ATimeGameCharacter::FindTimeManager()
 	{
 		return *It;  //find the timemanager
 	}
+
 	// If no TimeManager is found return nullptr
 	return nullptr;
 }

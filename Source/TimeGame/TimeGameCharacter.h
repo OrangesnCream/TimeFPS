@@ -7,13 +7,13 @@
 #include "Logging/LogMacros.h"
 #include "BasicStateMachine.h"
 #include "TimeGameCharacter.generated.h"
-#include "TimeManager.h"
+//#include "TimeManager.h"
 class UInputComponent;
 class USkeletalMeshComponent;
 class UCameraComponent;
 class UInputAction;
 class UInputMappingContext;
-class TimeManager;
+class ATimeManager;
 struct FInputActionValue;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
