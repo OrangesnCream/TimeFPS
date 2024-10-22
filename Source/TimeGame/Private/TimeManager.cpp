@@ -42,9 +42,7 @@ void ATimeManager::BeginPlay()
 
 }
 
-void ATimeManager::GlobalActorSlowdown()
-{
-}
+
 
 // Called every frame
 void ATimeManager::Tick(float DeltaTime)
@@ -75,7 +73,8 @@ void ATimeManager::HandleActorSpawned(AActor* SpawnedActor)
 }
 
 
-void ATimeManager::GlobalActorSlowdown(){
+void ATimeManager::GlobalActorSlowdown()
+{
     if (abilityActive) {//resets when Ability is used again
         for (AActor* Actor : ActorsToAffect)
         {

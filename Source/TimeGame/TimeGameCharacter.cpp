@@ -97,15 +97,6 @@ void ATimeGameCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 	}
 }
 
-ATimeManager* ATimeGameCharacter::FindTimeManager()
-{
-	return nullptr;
-}
-
-void ATimeGameCharacter::slowTime()
-{
-}
-
 
 void ATimeGameCharacter::Move(const FInputActionValue& Value)
 {
