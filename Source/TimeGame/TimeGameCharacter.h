@@ -81,6 +81,8 @@ public:
 	void slowTime();
 
 private:
+	void InitializeStateMachine();
+
 	double maxWalkSpeedReset;
 	FGameplayTag CurrentStateTag;
 

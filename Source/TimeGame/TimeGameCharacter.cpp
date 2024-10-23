@@ -16,6 +16,8 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Engine/World.h"
 #include "EngineUtils.h"
+#include "PlayerIdle.h"
+#include "PlayerRun.h"
 #include "TimeManager.h"
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -55,6 +57,7 @@ void ATimeGameCharacter::BeginPlay()
 
 	// Initialize the Character's state machine
 	StateMachine = NewObject<UBasicStateMachine>(this);
+
 	CurrentStateTag = FGameplayTag::RequestGameplayTag(FName("PlayerState.Ground.Idle"));
 	StateMachine->RequestState(CurrentStateTag);
 }
@@ -157,4 +160,9 @@ void ATimeGameCharacter::slowTime() {
 	if (timeManager) {
 		timeManager->GlobalActorSlowdown();
 	}
+}
+
+void ATimeGameCharacter::InitializeStateMachine()
+{
+	StateMachine->AddStateToCache(FGameplayTag::RequestGameplayTag(FName("PlayerState.Ground.Idle")), NewObject<UPlayerIdle>(this));
 }

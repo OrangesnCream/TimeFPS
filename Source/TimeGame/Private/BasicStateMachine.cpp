@@ -30,7 +30,7 @@ void UBasicStateMachine::RequestState(const FGameplayTag& StateTag)
         UE_LOG(LogTemp, Log, TEXT("State not found in cache, creating new state for: %s"), *StateTag.ToString());
         // Create and add the new state to the cache
         UStateBase* NewState = NewObject<UStateBase>(this);
-        //NewState->StateTag = StateTag;
+        NewState->StateTag = StateTag;
         AddStateToCache(StateTag, NewState);
         CurrentState = NewState;
     }
