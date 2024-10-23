@@ -13,5 +13,11 @@ UCLASS()
 class TIMEGAME_API UPlayerIdle : public UPlayerGroundState
 {
 	GENERATED_BODY()
-	
+
+public:
+    UPlayerIdle();
+
+    virtual void EnterState() override;
+    virtual void ExitState() override;
+    virtual void UpdateState(float DeltaTime) override;
 };

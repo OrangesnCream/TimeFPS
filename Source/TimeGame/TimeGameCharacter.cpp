@@ -43,6 +43,7 @@ ATimeGameCharacter::ATimeGameCharacter()
 	Mesh1P->SetRelativeLocation(FVector(-30.f, 0.f, -150.f));
 
 	maxWalkSpeedReset = GetCharacterMovement()->MaxWalkSpeed;
+	PrimaryActorTick.bCanEverTick = true;
 }
 
 void ATimeGameCharacter::BeginPlay()
@@ -102,6 +103,12 @@ void ATimeGameCharacter::Move(const FInputActionValue& Value)
 {
 	// input is a Vector2D
 	FVector2D MovementVector = Value.Get<FVector2D>();
+
+	if (!MovementVector.IsZero() && CurrentStateTag == FGameplayTag::RequestGameplayTag(FName("PlayerState.Ground.Idle")))
+	{
+		CurrentStateTag = FGameplayTag::RequestGameplayTag(FName("PlayerState.Ground.Run"));
+		StateMachine->RequestState(CurrentStateTag);
+	}
 
 	if (Controller != nullptr)
 	{
