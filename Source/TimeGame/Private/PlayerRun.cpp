@@ -12,7 +12,7 @@ void UPlayerRun::EnterState()
 {
     Super::EnterState();
     if (GEngine)
-        GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, TEXT("Entering Run"));
+        GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Purple, TEXT("Entering Run"));
     UE_LOG(LogTemp, Log, TEXT("Entering Run State"));
     // Add logic for entering the run state
 }
@@ -21,7 +21,7 @@ void UPlayerRun::ExitState()
 {
     Super::ExitState();
     if (GEngine)
-        GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, TEXT("Exiting Run"));
+        GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Purple, TEXT("Exiting Run"));
     UE_LOG(LogTemp, Log, TEXT("Exiting Run State"));
     // Add logic for exiting the run state
 }

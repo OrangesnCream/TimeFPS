@@ -114,6 +114,13 @@ void ATimeGameCharacter::Move(const FInputActionValue& Value)
 		CurrentStateTag = FGameplayTag::RequestGameplayTag(FName("PlayerState.Ground.Run"));
 		StateMachine->RequestState(CurrentStateTag);
 	}
+	else if (MovementVector.IsZero() && CurrentStateTag == FGameplayTag::RequestGameplayTag(FName("PlayerState.Ground.Run")))
+	{
+		if (GEngine)
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Transitioning from Run to Idle"));
+		CurrentStateTag = FGameplayTag::RequestGameplayTag(FName("PlayerState.Ground.Idle"));
+		StateMachine->RequestState(CurrentStateTag);
+	}
 
 	if (Controller != nullptr)
 	{
@@ -165,4 +172,5 @@ void ATimeGameCharacter::slowTime() {
 void ATimeGameCharacter::InitializeStateMachine()
 {
 	StateMachine->AddStateToCache(FGameplayTag::RequestGameplayTag(FName("PlayerState.Ground.Idle")), NewObject<UPlayerIdle>(this));
+	StateMachine->AddStateToCache(FGameplayTag::RequestGameplayTag(FName("PlayerState.Ground.Run")), NewObject<UPlayerRun>(this));
 }

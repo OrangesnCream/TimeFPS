@@ -12,7 +12,7 @@ void UPlayerIdle::EnterState()
 {
     Super::EnterState();
     if (GEngine)
-        GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, TEXT("Entering Idle"));
+        GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Purple, TEXT("Entering Idle"));
     UE_LOG(LogTemp, Log, TEXT("Entering Idle State"));
     // Add logic for entering the idle state
 }
@@ -21,7 +21,7 @@ void UPlayerIdle::ExitState()
 {
     Super::ExitState();
     if (GEngine)
-        GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, TEXT("Exiting Idle"));
+        GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Purple, TEXT("Exiting Idle"));
     UE_LOG(LogTemp, Log, TEXT("Exiting Idle State"));
     // Add logic for exiting the idle state
 }
