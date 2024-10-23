@@ -106,6 +106,8 @@ void ATimeGameCharacter::Move(const FInputActionValue& Value)
 
 	if (!MovementVector.IsZero() && CurrentStateTag == FGameplayTag::RequestGameplayTag(FName("PlayerState.Ground.Idle")))
 	{
+		if (GEngine)
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Transitioning from Idle to Run"));
 		CurrentStateTag = FGameplayTag::RequestGameplayTag(FName("PlayerState.Ground.Run"));
 		StateMachine->RequestState(CurrentStateTag);
 	}
