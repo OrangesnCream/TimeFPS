@@ -29,3 +29,4 @@ void UTP_PickUpComponent::OnSphereBeginOverlap(UPrimitiveComponent* OverlappedCo
 		OnComponentBeginOverlap.RemoveAll(this);
 	}
 }
+
