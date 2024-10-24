@@ -57,6 +57,7 @@ void ATimeGameCharacter::BeginPlay()
 
 	// Initialize the Character's state machine
 	StateMachine = NewObject<UBasicStateMachine>(this);
+	InitializeStateMachine();
 
 	CurrentStateTag = FGameplayTag::RequestGameplayTag(FName("PlayerState.Ground.Idle"));
 	StateMachine->RequestState(CurrentStateTag);
