@@ -45,7 +45,7 @@ ATimeGameCharacter::ATimeGameCharacter()
 	Mesh1P->SetRelativeLocation(FVector(-30.f, 0.f, -150.f));
 
 	maxWalkSpeedReset = GetCharacterMovement()->MaxWalkSpeed;
-	PrimaryActorTick.bCanEverTick = true;
+	//PrimaryActorTick.bCanEverTick = true;
 }
 
 void ATimeGameCharacter::BeginPlay()
@@ -63,14 +63,14 @@ void ATimeGameCharacter::BeginPlay()
 	StateMachine->RequestState(CurrentStateTag);
 }
 
-void ATimeGameCharacter::Tick(float DeltaTime)
+/*void ATimeGameCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
 	// Update the current state
 	if (UStateBase* CurrentState = StateMachine->GetStateFromCache(CurrentStateTag))
 		CurrentState->UpdateState(DeltaTime);
-}
+}*/
 
 //////////////////////////////////////////////////////////////////////////// Input
 

@@ -44,7 +44,7 @@ public:
 
 protected:
 	virtual void BeginPlay();
-	virtual void Tick(float DeltaTime) override;
+	// virtual void Tick(float DeltaTime) override; COMMENTED OUT UNTIL FURTHER NOTICE
 
 public:
 		
