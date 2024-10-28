@@ -62,8 +62,8 @@ void ATimeGameCharacter::BeginPlay()
 	StateMachine->RequestState(CurrentStateTag);
 
 	// Dash Variables
-	DashDistance = 600.0f;
-	DashCooldown = 1.0f;
+	DashDistance = 1234.56f;
+	DashCooldown = .75f;
 	bCanDash = true;
 }
 
@@ -114,7 +114,7 @@ void ATimeGameCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 void ATimeGameCharacter::Move(const FInputActionValue& Value)
 {
 	// input is a Vector2D
-	FVector2D MovementVector = Value.Get<FVector2D>();
+	FVector2D MovementVector = Value.Get<FVector2D>().GetSafeNormal();
 
 	if (!MovementVector.IsZero() && CurrentStateTag == FGameplayTag::RequestGameplayTag(FName("PlayerState.Ground.Idle")))
 	{
@@ -153,7 +153,7 @@ void ATimeGameCharacter::Dash()
 {
 	if (bCanDash)
 	{
-		FVector DashDirection = GetLastMovementInputVector().GetSafeNormal();
+		FVector DashDirection = (GetLastMovementInputVector().GetSafeNormal() * 1.25) + (GetActorUpVector() * .25);
 		LaunchCharacter(DashDirection * DashDistance, true, true);
 
 		bCanDash = false;
