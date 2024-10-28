@@ -12,13 +12,11 @@
 #include "Engine/LocalPlayer.h"
 #include "Engine/World.h"
 #include "EngineUtils.h"
-#include "TimeManager.h"
+#include "TimeManager.h" // custom class for time manipulation
 #include "GameFramework/CharacterMovementComponent.h"
-#include "Engine/World.h"
-#include "EngineUtils.h"
 #include "PlayerIdle.h"
 #include "PlayerRun.h"
-#include "TimeManager.h"
+#include "TimerManager.h"
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
 //////////////////////////////////////////////////////////////////////////
@@ -45,7 +43,8 @@ ATimeGameCharacter::ATimeGameCharacter()
 	Mesh1P->SetRelativeLocation(FVector(-30.f, 0.f, -150.f));
 
 	maxWalkSpeedReset = GetCharacterMovement()->MaxWalkSpeed;
-	//PrimaryActorTick.bCanEverTick = true;
+
+	PrimaryActorTick.bCanEverTick = true;
 }
 
 void ATimeGameCharacter::BeginPlay()
@@ -61,16 +60,22 @@ void ATimeGameCharacter::BeginPlay()
 
 	CurrentStateTag = FGameplayTag::RequestGameplayTag(FName("PlayerState.Ground.Idle"));
 	StateMachine->RequestState(CurrentStateTag);
+
+	// Dash Variables
+	DashDistance = 600.0f;
+	DashCooldown = 1.0f;
+	bCanDash = true;
 }
 
-/*void ATimeGameCharacter::Tick(float DeltaTime)
+void ATimeGameCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
 	// Update the current state
+	/*
 	if (UStateBase* CurrentState = StateMachine->GetStateFromCache(CurrentStateTag))
-		CurrentState->UpdateState(DeltaTime);
-}*/
+		CurrentState->UpdateState(DeltaTime);*/
+}
 
 //////////////////////////////////////////////////////////////////////////// Input
 
@@ -89,6 +94,9 @@ void ATimeGameCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 		// Sprinting
 		PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &ATimeGameCharacter::Sprint);
 		PlayerInputComponent->BindAction("Sprint", IE_Released, this, &ATimeGameCharacter::StopSprinting);
+
+		// Dashing
+		PlayerInputComponent->BindAction("Dash", IE_Pressed, this, &ATimeGameCharacter::Dash);
 
 		// Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ATimeGameCharacter::Look);
@@ -141,6 +149,18 @@ void ATimeGameCharacter::StopSprinting()
 	GetCharacterMovement()->MaxWalkSpeed = maxWalkSpeedReset;
 }
 
+void ATimeGameCharacter::Dash()
+{
+	if (bCanDash)
+	{
+		FVector DashDirection = GetLastMovementInputVector().GetSafeNormal();
+		LaunchCharacter(DashDirection * DashDistance, true, true);
+
+		bCanDash = false;
+		GetWorldTimerManager().SetTimer(DashCooldownTimerHandle, this, &ATimeGameCharacter::ResetDash, DashCooldown, false);
+	}
+}
+
 void ATimeGameCharacter::Look(const FInputActionValue& Value)
 {
 	// input is a Vector2D
@@ -174,4 +194,9 @@ void ATimeGameCharacter::InitializeStateMachine()
 {
 	StateMachine->AddStateToCache(FGameplayTag::RequestGameplayTag(FName("PlayerState.Ground.Idle")), NewObject<UPlayerIdle>(this));
 	StateMachine->AddStateToCache(FGameplayTag::RequestGameplayTag(FName("PlayerState.Ground.Run")), NewObject<UPlayerRun>(this));
+}
+
+void ATimeGameCharacter::ResetDash()
+{
+	bCanDash = true;
 }
