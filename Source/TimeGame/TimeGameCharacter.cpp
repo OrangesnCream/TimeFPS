@@ -153,8 +153,16 @@ void ATimeGameCharacter::Dash()
 {
 	if (bCanDash)
 	{
-		FVector DashDirection = (GetLastMovementInputVector().GetSafeNormal() * 1.25) + (GetActorUpVector() * .25);
-		LaunchCharacter(DashDirection * DashDistance, true, true);
+		if (GetLastMovementInputVector().IsZero())
+		{
+			const FVector ForwardDodge = (this->GetActorRotation().Vector() * 1.25) + (GetActorUpVector() * .25);
+			LaunchCharacter(ForwardDodge * DashDistance, true, true);
+		}
+		else
+		{
+			FVector DashDirection = (GetLastMovementInputVector().GetSafeNormal() * 1.25) + (GetActorUpVector() * .25);
+			LaunchCharacter(DashDirection * DashDistance, true, true);
+		}
 
 		bCanDash = false;
 		GetWorldTimerManager().SetTimer(DashCooldownTimerHandle, this, &ATimeGameCharacter::ResetDash, DashCooldown, false);
