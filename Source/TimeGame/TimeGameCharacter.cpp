@@ -62,7 +62,7 @@ void ATimeGameCharacter::BeginPlay()
 	StateMachine->RequestState(CurrentStateTag);
 
 	// Dash Variables
-	DashDistance = 1234.56f;
+	DashDistance = 1122;
 	DashCooldown = .75f;
 	bCanDash = true;
 }
@@ -155,7 +155,7 @@ void ATimeGameCharacter::Dash()
 	{
 		if (GetLastMovementInputVector().IsZero())
 		{
-			const FVector ForwardDodge = (this->GetActorRotation().Vector() * 1.25) + (GetActorUpVector() * .25);
+			const FVector ForwardDodge = (this->GetActorRotation().Vector() * 1.25) + (GetActorUpVector() * .33);
 			LaunchCharacter(ForwardDodge * DashDistance, true, true);
 		}
 		else
