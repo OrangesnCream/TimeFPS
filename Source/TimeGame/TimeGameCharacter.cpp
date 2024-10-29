@@ -116,7 +116,7 @@ void ATimeGameCharacter::Move(const FInputActionValue& Value)
 	// input is a Vector2D
 	FVector2D MovementVector = Value.Get<FVector2D>().GetSafeNormal();
 
-	if (!MovementVector.IsZero() && CurrentStateTag == FGameplayTag::RequestGameplayTag(FName("PlayerState.Ground.Idle")))
+	/*if (!MovementVector.IsZero() && CurrentStateTag == FGameplayTag::RequestGameplayTag(FName("PlayerState.Ground.Idle")))
 	{
 		if (GEngine)
 			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Transitioning from Idle to Run"));
@@ -129,7 +129,7 @@ void ATimeGameCharacter::Move(const FInputActionValue& Value)
 			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Transitioning from Run to Idle"));
 		CurrentStateTag = FGameplayTag::RequestGameplayTag(FName("PlayerState.Ground.Idle"));
 		StateMachine->RequestState(CurrentStateTag);
-	}
+	}*/
 
 	if (Controller != nullptr)
 	{
@@ -141,7 +141,7 @@ void ATimeGameCharacter::Move(const FInputActionValue& Value)
 
 void ATimeGameCharacter::Sprint()
 {
-	GetCharacterMovement()->MaxWalkSpeed *= 2;
+	GetCharacterMovement()->MaxWalkSpeed *= 1.75;
 }
 
 void ATimeGameCharacter::StopSprinting()
