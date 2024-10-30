@@ -44,7 +44,7 @@ public:
 
 protected:
 	virtual void BeginPlay();
-	// virtual void Tick(float DeltaTime) override; COMMENTED OUT UNTIL FURTHER NOTICE
+	virtual void Tick(float DeltaTime) override;
 
 public:
 		
@@ -55,6 +55,13 @@ public:
 	// State Machine for managing character states
 	UPROPERTY() UBasicStateMachine* StateMachine;
 
+	// Dash variables
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dash")
+	float DashDistance;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dash")
+	float DashCooldown;
+
 protected:
 	/** Called for movement input */
 	void Move(const FInputActionValue& Value);
@@ -62,6 +69,9 @@ protected:
 	/** Allows Character to Sprint */
 	void Sprint();
 	void StopSprinting();
+
+	// Dash
+	void Dash();
 
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
@@ -82,9 +92,14 @@ public:
 
 private:
 	void InitializeStateMachine();
+	void ResetDash();
 
+	bool bCanDash;
 	double maxWalkSpeedReset;
 	FGameplayTag CurrentStateTag;
+
+	// Timer handle for dash cooldown
+	FTimerHandle DashCooldownTimerHandle;
 
 };
 
