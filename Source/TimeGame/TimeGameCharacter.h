@@ -109,12 +109,5 @@ private:
 	// Timer handle for dash cooldown
 	FTimerHandle DashCooldownTimerHandle;
 
-	UPROPERTY(EditAnywhere) float StandingCamHeight;
-	UPROPERTY(EditAnywhere) float CrouchedCamHeight;
-	UPROPERTY(EditAnywhere) float StandingCapsuleHeight;
-	UPROPERTY(EditAnywhere) float CrouchedCapsuleHeight;
-	FTimeline CrouchTimeline;
-	UFUNCTION() void UpdateCamHeight(float value);
-
 };
 

@@ -53,22 +53,7 @@ ATimeGameCharacter::ATimeGameCharacter()
 	bCanDash = true;
 
 	// Crouch Variables
-	StandingCamHeight = 90.0f;
-	CrouchedCamHeight = 45.0f;
-	StandingCapsuleHeight = 88.0f;
-	CrouchedCapsuleHeight = 44.0f;
 	bIsCrouching = false;
-	
-	// Setup timeline
-	static ConstructorHelpers::FObjectFinder<UCurveFloat> Curve(TEXT("/Game/Curves/CrouchCurve"));
-	if (Curve.Succeeded())
-	{
-		FOnTimelineFloat TimelineCallback;
-		TimelineCallback.BindUFunction(this, FName("UpdateCamHeight"));
-		CrouchTimeline.AddInterpFloat(Curve.Object, TimelineCallback);
-		CrouchTimeline.SetTimelineLength(1.0f);
-	}
-
 	CrouchEyeOffset = FVector(0);
 	CrouchSpeed = 12;
 }
@@ -122,7 +107,7 @@ void ATimeGameCharacter::BeginPlay()
 void ATimeGameCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	CrouchTimeline.TickTimeline(DeltaTime);
+	//CrouchTimeline.TickTimeline(DeltaTime);
 
 	float CrouchInterpTime = FMath::Min(1, CrouchSpeed * DeltaTime);
 	CrouchEyeOffset = (1 - CrouchInterpTime) * CrouchEyeOffset;
@@ -260,17 +245,9 @@ void ATimeGameCharacter::slowTime() {
 void ATimeGameCharacter::ToggleCrouch()
 {
 	if (bIsCrouching)
-	{
 		UnCrouch();
-		/* GetCapsuleComponent()->SetCapsuleHalfHeight(88.0f); // Adjust the height as needed */
-		CrouchTimeline.Reverse();
-	}
 	else
-	{
 		Crouch();
-		/* GetCapsuleComponent()->SetCapsuleHalfHeight(44.0f); // Adjust the height as needed */
-		CrouchTimeline.Play();
-	}
 	bIsCrouching = !bIsCrouching;
 }
 
@@ -283,13 +260,4 @@ void ATimeGameCharacter::InitializeStateMachine()
 void ATimeGameCharacter::ResetDash()
 {
 	bCanDash = true;
-}
-
-void ATimeGameCharacter::UpdateCamHeight(float value)
-{
-	float NewCameraHeight = FMath::Lerp(StandingCamHeight, CrouchedCamHeight, value);
-	GetFirstPersonCameraComponent()->SetRelativeLocation(FVector(0, 0, NewCameraHeight));
-
-	float NewCapsuleHeight = FMath::Lerp(StandingCapsuleHeight, CrouchedCapsuleHeight, value);
-	GetCapsuleComponent()->SetCapsuleHalfHeight(NewCapsuleHeight);
 }
