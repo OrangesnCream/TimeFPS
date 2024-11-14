@@ -57,6 +57,13 @@ ATimeGameCharacter::ATimeGameCharacter()
 	CrouchEyeOffset = FVector(0);
 	CrouchSpeed = 12;
 
+	// Slide Variables
+	bIsSliding = false;
+	DecelerationRate = 10;
+
+	// Matling Variables
+	bIsMantling = false;
+
 	bIsSprinting = false;
 }
 
@@ -114,6 +121,17 @@ void ATimeGameCharacter::Tick(float DeltaTime)
 	float CrouchInterpTime = FMath::Min(1, CrouchSpeed * DeltaTime);
 	CrouchEyeOffset = (1 - CrouchInterpTime) * CrouchEyeOffset;
 
+	if (bIsSliding)
+		HandleSlide(DeltaTime);
+	if (bIsMantling)
+		HandleMantle(DeltaTime);
+	else
+	{
+		//FVector LedgeLocation, LedgeNormal;
+		if (DetectLedge(LedgeLocation, LedgeNormal))
+			StartMantle();
+	}
+
 	// Update the current state
 	/*
 	if (UStateBase* CurrentState = StateMachine->GetStateFromCache(CurrentStateTag))
@@ -140,8 +158,11 @@ void ATimeGameCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 		// Dashing
 		PlayerInputComponent->BindAction("Dash", IE_Pressed, this, &ATimeGameCharacter::Dash);
 
-		// Crouching
-		PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &ATimeGameCharacter::ToggleCrouch);
+		// Crouching or Sliding
+		if (!GetCharacterMovement()->Velocity.IsNearlyZero())
+			PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &ATimeGameCharacter::StartSlide);
+		else
+			PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &ATimeGameCharacter::ToggleCrouch);
 
 		// Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ATimeGameCharacter::Look);
@@ -228,9 +249,11 @@ void ATimeGameCharacter::Dash()
 			FVector DashDirection = (GetLastMovementInputVector().GetSafeNormal() * 1.25) + (GetActorUpVector() * .25);
 			LaunchCharacter(DashDirection * DashDistance, true, true);
 		}
-
-		bCanDash = false;
-		GetWorldTimerManager().SetTimer(DashCooldownTimerHandle, this, &ATimeGameCharacter::ResetDash, DashCooldown, false);
+		if (!IsGrounded())
+		{
+			bCanDash = false;
+			GetWorldTimerManager().SetTimer(DashCooldownTimerHandle, this, &ATimeGameCharacter::ResetDash, DashCooldown * 2, false);
+		}
 	}
 
 	if (!bIsSprinting)
@@ -278,6 +301,67 @@ void ATimeGameCharacter::ToggleCrouch()
 	bIsCrouching = !bIsCrouching;
 }
 
+void ATimeGameCharacter::StartSlide()
+{
+	if (GEngine)
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("SLIDING"));
+	if (!bIsSliding)
+	{
+		bIsSliding = true;
+		InitialVelocity = GetCharacterMovement()->Velocity;
+	}
+}
+
+void ATimeGameCharacter::StopSlide()
+{
+	bIsSliding = false;
+	if (!bIsCrouching)
+	{
+		Crouch();
+		bIsCrouching = true;
+	}
+}
+
+void ATimeGameCharacter::HandleSlide(float DeltaTime)
+{
+	FVector
+		CurrentVelocity = GetCharacterMovement()->Velocity,
+		Deceleration = -InitialVelocity.GetSafeNormal() * DecelerationRate * DeltaTime,
+		NewVelocity = CurrentVelocity;
+	if (FVector::DotProduct(NewVelocity, InitialVelocity) <= 0)
+	{
+		NewVelocity = FVector::ZeroVector;
+		StopSlide();
+	}
+	GetCharacterMovement()->Velocity = NewVelocity;
+}
+
+void ATimeGameCharacter::StartMantle()
+{
+	if (!bIsMantling)
+	{
+		bIsMantling = true;
+		LedgeLocation = GetActorLocation() + FVector(0, 0, GetCapsuleComponent()->GetScaledCapsuleHalfHeight());
+	}
+}
+
+void ATimeGameCharacter::StopMantle()
+{
+	bIsMantling = false;
+}
+
+void ATimeGameCharacter::HandleMantle(float DeltaTime)
+{
+	FVector
+		CurrentLocation = GetActorLocation(),
+		TargetLocation = LedgeLocation,
+		NewLocation = FMath::VInterpTo(CurrentLocation, TargetLocation, DeltaTime, 600);
+	SetActorLocation(NewLocation);
+
+	if (FVector::Dist(NewLocation, TargetLocation) < 1.0f)
+		StopMantle();
+}
+
 void ATimeGameCharacter::InitializeStateMachine()
 {
 	StateMachine->AddStateToCache(FGameplayTag::RequestGameplayTag(FName("PlayerState.Ground.Idle")), NewObject<UPlayerIdle>(this));
@@ -287,4 +371,42 @@ void ATimeGameCharacter::InitializeStateMachine()
 void ATimeGameCharacter::ResetDash()
 {
 	bCanDash = true;
+}
+
+bool ATimeGameCharacter::IsGrounded() const
+{
+	// Check if the character is moving on the ground using collision detection
+	if (GetCharacterMovement()->IsMovingOnGround())
+		return true;
+
+	// Perform a raycast to check the distance to the ground
+	FVector Start = GetActorLocation();
+	FVector End = Start - FVector(0, 0, 100.0f); // Adjust the distance as needed
+
+	FHitResult HitResult;
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(this);
+
+	bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, Params);
+
+	return bHit;
+}
+
+bool ATimeGameCharacter::DetectLedge(FVector& OutLedgeLocation, FVector& OutLedgeNormal)
+{
+	FVector
+		Start = GetActorLocation(),
+		ForwardVector = GetActorForwardVector(),
+		End = Start + (ForwardVector * 100.0f);
+	FHitResult HitResult;
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(this);
+	
+	if (GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, Params))
+	{
+		OutLedgeLocation = HitResult.ImpactPoint;
+		OutLedgeNormal = HitResult.ImpactNormal;
+		return true;
+	}
+	return false;
 }

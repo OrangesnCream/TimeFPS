@@ -94,19 +94,34 @@ protected:
 	// Crouch
 	void ToggleCrouch();
 
+	// Slide
+	void StartSlide();
+	void StopSlide();
+	void HandleSlide(float DeltaTime);
+
+	// Mantling
+	void StartMantle();
+	void StopMantle();
+	void HandleMantle(float DeltaTime);
+
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
 
 private:
 	void InitializeStateMachine();
 	void ResetDash();
+	bool IsGrounded() const;
+	bool DetectLedge(FVector& OutLedgeLocation, FVector& OutLedgeNormal);
 
-	bool bCanDash, bIsCrouching, bIsSprinting;
+	bool bCanDash, bIsCrouching, bIsSprinting, bIsSliding, bIsMantling;
 	double maxWalkSpeedReset;
 	FGameplayTag CurrentStateTag;
 
 	// Timer handle for dash cooldown
 	FTimerHandle DashCooldownTimerHandle;
+
+	FVector InitialVelocity, LedgeLocation, LedgeNormal;
+	float DecelerationRate;
 
 };
 
