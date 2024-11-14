@@ -185,6 +185,11 @@ void ATimeGameCharacter::Move(const FInputActionValue& Value)
 
 void ATimeGameCharacter::Sprint()
 {
+	if (bIsCrouching)
+	{
+		UnCrouch();
+		bIsCrouching = !bIsCrouching;
+	}
 	GetCharacterMovement()->MaxWalkSpeed *= 1.75;
 }
 
