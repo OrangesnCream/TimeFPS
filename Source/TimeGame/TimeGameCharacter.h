@@ -42,16 +42,7 @@ class ATimeGameCharacter : public ACharacter
 	
 public:
 	ATimeGameCharacter();
-	void OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;
-	void OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;
-	void CalcCamera(float DeltaTime, struct FMinimalViewInfo& OutResult) override;
 
-protected:
-	virtual void BeginPlay();
-	virtual void Tick(float DeltaTime) override;
-
-public:
-		
 	/** Look Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* LookAction;
@@ -67,7 +58,28 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Crouch) FVector CrouchEyeOffset;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Crouch) float CrouchSpeed;
 
+	/** Returns Mesh1P subobject **/
+	USkeletalMeshComponent* GetMesh1P() const { return Mesh1P; }
+	/** Returns FirstPersonCameraComponent subobject **/
+	UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
+
+	// Time Dilation
+	ATimeManager* FindTimeManager();
+	ATimeManager* timeManager;
+	void slowTime();
+
 protected:
+	virtual void BeginPlay();
+	virtual void Tick(float DeltaTime) override;
+
+	// APawn interface
+	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
+	// End of APawn interface
+
+	void OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;
+	void OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;
+	void CalcCamera(float DeltaTime, struct FMinimalViewInfo& OutResult) override;
+
 	/** Called for movement input */
 	void Move(const FInputActionValue& Value);
 
@@ -78,25 +90,11 @@ protected:
 	// Dash
 	void Dash();
 
-	/** Called for looking input */
-	void Look(const FInputActionValue& Value);
-
-protected:
-	// APawn interface
-	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
-	// End of APawn interface
-
-public:
-	/** Returns Mesh1P subobject **/
-	USkeletalMeshComponent* GetMesh1P() const { return Mesh1P; }
-	/** Returns FirstPersonCameraComponent subobject **/
-	UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
-	ATimeManager* FindTimeManager();
-	ATimeManager* timeManager;
-	void slowTime();
-
 	// Crouch
 	void ToggleCrouch();
+
+	/** Called for looking input */
+	void Look(const FInputActionValue& Value);
 
 private:
 	void InitializeStateMachine();
