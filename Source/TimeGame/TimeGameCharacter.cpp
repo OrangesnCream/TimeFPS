@@ -1,7 +1,7 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "TimeGameCharacter.h"
-#include "TimeGameProjectile.h"
+//#include "TimeGameProjectile.h"
 #include "Animation/AnimInstance.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -45,6 +45,63 @@ ATimeGameCharacter::ATimeGameCharacter()
 	maxWalkSpeedReset = GetCharacterMovement()->MaxWalkSpeed;
 
 	PrimaryActorTick.bCanEverTick = true;
+	GetCharacterMovement()->GetNavAgentPropertiesRef().bCanCrouch = true;
+
+	// Dash Variables
+	DashDistance = 1122;
+	DashCooldown = .75f;
+	bCanDash = true;
+
+	// Crouch Variables
+	StandingCamHeight = 90.0f;
+	CrouchedCamHeight = 45.0f;
+	StandingCapsuleHeight = 88.0f;
+	CrouchedCapsuleHeight = 44.0f;
+	bIsCrouching = false;
+	
+	// Setup timeline
+	static ConstructorHelpers::FObjectFinder<UCurveFloat> Curve(TEXT("/Game/Curves/CrouchCurve"));
+	if (Curve.Succeeded())
+	{
+		FOnTimelineFloat TimelineCallback;
+		TimelineCallback.BindUFunction(this, FName("UpdateCamHeight"));
+		CrouchTimeline.AddInterpFloat(Curve.Object, TimelineCallback);
+		CrouchTimeline.SetTimelineLength(1.0f);
+	}
+
+	CrouchEyeOffset = FVector(0);
+	CrouchSpeed = 12;
+}
+
+void ATimeGameCharacter::OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust)
+{
+	if (HalfHeightAdjust == 0)
+		return;
+
+	float StartBaseEyeHeight = BaseEyeHeight;
+	Super::OnStartCrouch(HalfHeightAdjust, ScaledHalfHeightAdjust);
+	CrouchEyeOffset.Z += StartBaseEyeHeight - BaseEyeHeight + HalfHeightAdjust;
+	FirstPersonCameraComponent->SetRelativeLocation(FVector(0, 0, BaseEyeHeight), false);
+}
+
+void ATimeGameCharacter::OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust)
+{
+	if (HalfHeightAdjust == 0)
+		return;
+
+	float StartBaseEyeHeight = BaseEyeHeight;
+	Super::OnEndCrouch(HalfHeightAdjust, ScaledHalfHeightAdjust);
+	CrouchEyeOffset.Z += StartBaseEyeHeight - BaseEyeHeight - HalfHeightAdjust;
+	FirstPersonCameraComponent->SetRelativeLocation(FVector(0, 0, BaseEyeHeight), false);
+}
+
+void ATimeGameCharacter::CalcCamera(float DeltaTime, FMinimalViewInfo& OutResult)
+{
+	if (FirstPersonCameraComponent)
+	{
+		FirstPersonCameraComponent->GetCameraView(DeltaTime, OutResult);
+		OutResult.Location += CrouchEyeOffset;
+	}
 }
 
 void ATimeGameCharacter::BeginPlay()
@@ -60,16 +117,15 @@ void ATimeGameCharacter::BeginPlay()
 
 	CurrentStateTag = FGameplayTag::RequestGameplayTag(FName("PlayerState.Ground.Idle"));
 	StateMachine->RequestState(CurrentStateTag);
-
-	// Dash Variables
-	DashDistance = 1122;
-	DashCooldown = .75f;
-	bCanDash = true;
 }
 
 void ATimeGameCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	CrouchTimeline.TickTimeline(DeltaTime);
+
+	float CrouchInterpTime = FMath::Min(1, CrouchSpeed * DeltaTime);
+	CrouchEyeOffset = (1 - CrouchInterpTime) * CrouchEyeOffset;
 
 	// Update the current state
 	/*
@@ -97,6 +153,9 @@ void ATimeGameCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 
 		// Dashing
 		PlayerInputComponent->BindAction("Dash", IE_Pressed, this, &ATimeGameCharacter::Dash);
+
+		// Crouching
+		PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &ATimeGameCharacter::ToggleCrouch);
 
 		// Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ATimeGameCharacter::Look);
@@ -198,6 +257,23 @@ void ATimeGameCharacter::slowTime() {
 	}
 }
 
+void ATimeGameCharacter::ToggleCrouch()
+{
+	if (bIsCrouching)
+	{
+		UnCrouch();
+		/* GetCapsuleComponent()->SetCapsuleHalfHeight(88.0f); // Adjust the height as needed */
+		CrouchTimeline.Reverse();
+	}
+	else
+	{
+		Crouch();
+		/* GetCapsuleComponent()->SetCapsuleHalfHeight(44.0f); // Adjust the height as needed */
+		CrouchTimeline.Play();
+	}
+	bIsCrouching = !bIsCrouching;
+}
+
 void ATimeGameCharacter::InitializeStateMachine()
 {
 	StateMachine->AddStateToCache(FGameplayTag::RequestGameplayTag(FName("PlayerState.Ground.Idle")), NewObject<UPlayerIdle>(this));
@@ -207,4 +283,13 @@ void ATimeGameCharacter::InitializeStateMachine()
 void ATimeGameCharacter::ResetDash()
 {
 	bCanDash = true;
+}
+
+void ATimeGameCharacter::UpdateCamHeight(float value)
+{
+	float NewCameraHeight = FMath::Lerp(StandingCamHeight, CrouchedCamHeight, value);
+	GetFirstPersonCameraComponent()->SetRelativeLocation(FVector(0, 0, NewCameraHeight));
+
+	float NewCapsuleHeight = FMath::Lerp(StandingCapsuleHeight, CrouchedCapsuleHeight, value);
+	GetCapsuleComponent()->SetCapsuleHalfHeight(NewCapsuleHeight);
 }

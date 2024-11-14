@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "Logging/LogMacros.h"
 #include "BasicStateMachine.h"
+#include <Components/TimelineComponent.h>
 #include "TimeGameCharacter.generated.h"
 //#include "TimeManager.h"
 class UInputComponent;
@@ -41,6 +42,9 @@ class ATimeGameCharacter : public ACharacter
 	
 public:
 	ATimeGameCharacter();
+	void OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;
+	void OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;
+	void CalcCamera(float DeltaTime, struct FMinimalViewInfo& OutResult) override;
 
 protected:
 	virtual void BeginPlay();
@@ -56,11 +60,12 @@ public:
 	UPROPERTY() UBasicStateMachine* StateMachine;
 
 	// Dash variables
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dash")
-	float DashDistance;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dash") float DashDistance;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dash") float DashCooldown;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dash")
-	float DashCooldown;
+	// Crouch variables
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Crouch) FVector CrouchEyeOffset;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Crouch) float CrouchSpeed;
 
 protected:
 	/** Called for movement input */
@@ -90,16 +95,26 @@ public:
 	ATimeManager* timeManager;
 	void slowTime();
 
+	// Crouch
+	void ToggleCrouch();
+
 private:
 	void InitializeStateMachine();
 	void ResetDash();
 
-	bool bCanDash;
+	bool bCanDash, bIsCrouching;
 	double maxWalkSpeedReset;
 	FGameplayTag CurrentStateTag;
 
 	// Timer handle for dash cooldown
 	FTimerHandle DashCooldownTimerHandle;
+
+	UPROPERTY(EditAnywhere) float StandingCamHeight;
+	UPROPERTY(EditAnywhere) float CrouchedCamHeight;
+	UPROPERTY(EditAnywhere) float StandingCapsuleHeight;
+	UPROPERTY(EditAnywhere) float CrouchedCapsuleHeight;
+	FTimeline CrouchTimeline;
+	UFUNCTION() void UpdateCamHeight(float value);
 
 };
 
