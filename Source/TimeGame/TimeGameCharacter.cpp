@@ -56,6 +56,8 @@ ATimeGameCharacter::ATimeGameCharacter()
 	bIsCrouching = false;
 	CrouchEyeOffset = FVector(0);
 	CrouchSpeed = 12;
+
+	bIsSprinting = false;
 }
 
 void ATimeGameCharacter::OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust)
@@ -133,8 +135,7 @@ void ATimeGameCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ATimeGameCharacter::Move);
 
 		// Sprinting
-		PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &ATimeGameCharacter::Sprint);
-		PlayerInputComponent->BindAction("Sprint", IE_Released, this, &ATimeGameCharacter::StopSprinting);
+		PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &ATimeGameCharacter::ToggleSprint);
 
 		// Dashing
 		PlayerInputComponent->BindAction("Dash", IE_Pressed, this, &ATimeGameCharacter::Dash);
@@ -181,6 +182,21 @@ void ATimeGameCharacter::Move(const FInputActionValue& Value)
 		AddMovementInput(GetActorForwardVector(), MovementVector.Y);
 		AddMovementInput(GetActorRightVector(), MovementVector.X);
 	}
+
+	if (Value.Get<FVector2D>().GetSafeNormal().IsZero() && bIsSprinting)
+	{
+		StopSprinting();
+		bIsSprinting = false;
+	}
+}
+
+void ATimeGameCharacter::ToggleSprint()
+{
+	if (bIsSprinting)
+		StopSprinting();
+	else
+		Sprint();
+	bIsSprinting = !bIsSprinting;
 }
 
 void ATimeGameCharacter::Sprint()
@@ -215,6 +231,12 @@ void ATimeGameCharacter::Dash()
 
 		bCanDash = false;
 		GetWorldTimerManager().SetTimer(DashCooldownTimerHandle, this, &ATimeGameCharacter::ResetDash, DashCooldown, false);
+	}
+
+	if (!bIsSprinting)
+	{
+		Sprint();
+		bIsSprinting = true;
 	}
 }
 

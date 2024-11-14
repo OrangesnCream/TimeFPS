@@ -84,6 +84,7 @@ protected:
 	void Move(const FInputActionValue& Value);
 
 	/** Allows Character to Sprint */
+	void ToggleSprint();
 	void Sprint();
 	void StopSprinting();
 
@@ -100,7 +101,7 @@ private:
 	void InitializeStateMachine();
 	void ResetDash();
 
-	bool bCanDash, bIsCrouching;
+	bool bCanDash, bIsCrouching, bIsSprinting;
 	double maxWalkSpeedReset;
 	FGameplayTag CurrentStateTag;
 
