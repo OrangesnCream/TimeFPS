@@ -49,7 +49,7 @@ ATimeGameCharacter::ATimeGameCharacter()
 
 	// Dash Variables
 	DashDistance = 1122;
-	DashCooldown = .75f;
+	DashCooldown = .66f;
 	bCanDash = true;
 
 	// Crouch Variables
@@ -57,14 +57,12 @@ ATimeGameCharacter::ATimeGameCharacter()
 	CrouchEyeOffset = FVector(0);
 	CrouchSpeed = 12;
 
-	// Slide Variables
-	bIsSliding = false;
-	DecelerationRate = 10;
-
 	// Matling Variables
 	bIsMantling = false;
 
 	bIsSprinting = false;
+
+	MoveVector = FVector2D(0);
 }
 
 void ATimeGameCharacter::OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust)
@@ -121,16 +119,14 @@ void ATimeGameCharacter::Tick(float DeltaTime)
 	float CrouchInterpTime = FMath::Min(1, CrouchSpeed * DeltaTime);
 	CrouchEyeOffset = (1 - CrouchInterpTime) * CrouchEyeOffset;
 
-	if (bIsSliding)
-		HandleSlide(DeltaTime);
 	if (bIsMantling)
 		HandleMantle(DeltaTime);
-	else
-	{
-		//FVector LedgeLocation, LedgeNormal;
-		if (DetectLedge(LedgeLocation, LedgeNormal))
-			StartMantle();
-	}
+	else if (DetectLedge(LedgeLocation, LedgeNormal))
+		StartMantle();
+
+	// Monitor for ground exit
+	if (!GetCharacterMovement()->IsMovingOnGround() && !bIsInCoyoteTime)
+		EnterCoyoteTime();
 
 	// Update the current state
 	/*
@@ -158,11 +154,8 @@ void ATimeGameCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 		// Dashing
 		PlayerInputComponent->BindAction("Dash", IE_Pressed, this, &ATimeGameCharacter::Dash);
 
-		// Crouching or Sliding
-		if (!GetCharacterMovement()->Velocity.IsNearlyZero())
-			PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &ATimeGameCharacter::StartSlide);
-		else
-			PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &ATimeGameCharacter::ToggleCrouch);
+		// Crouching
+		PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &ATimeGameCharacter::ToggleCrouch);
 
 		// Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ATimeGameCharacter::Look);
@@ -171,16 +164,14 @@ void ATimeGameCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 		PlayerInputComponent->BindAction("Ability", IE_Pressed, this, &ATimeGameCharacter::slowTime);
 	}
 	else
-	{
 		UE_LOG(LogTemplateCharacter, Error, TEXT("'%s' Failed to find an Enhanced Input Component! This template is built to use the Enhanced Input system. If you intend to use the legacy system, then you will need to update this C++ file."), *GetNameSafe(this));
-	}
 }
 
 
 void ATimeGameCharacter::Move(const FInputActionValue& Value)
 {
 	// input is a Vector2D
-	FVector2D MovementVector = Value.Get<FVector2D>().GetSafeNormal();
+	MoveVector = Value.Get<FVector2D>().GetSafeNormal();
 
 	/*if (!MovementVector.IsZero() && CurrentStateTag == FGameplayTag::RequestGameplayTag(FName("PlayerState.Ground.Idle")))
 	{
@@ -200,8 +191,8 @@ void ATimeGameCharacter::Move(const FInputActionValue& Value)
 	if (Controller != nullptr)
 	{
 		// add movement 
-		AddMovementInput(GetActorForwardVector(), MovementVector.Y);
-		AddMovementInput(GetActorRightVector(), MovementVector.X);
+		AddMovementInput(GetActorForwardVector(), MoveVector.Y);
+		AddMovementInput(GetActorRightVector(), MoveVector.X);
 	}
 
 	if (Value.Get<FVector2D>().GetSafeNormal().IsZero() && bIsSprinting)
@@ -246,13 +237,13 @@ void ATimeGameCharacter::Dash()
 		}
 		else
 		{
-			FVector DashDirection = (GetLastMovementInputVector().GetSafeNormal() * 1.25) + (GetActorUpVector() * .25);
+			FVector DashDirection = (GetLastMovementInputVector().GetSafeNormal() * 1.33) + (GetActorUpVector() * .3);
 			LaunchCharacter(DashDirection * DashDistance, true, true);
 		}
-		if (!IsGrounded())
+		if (!GetCharacterMovement()->IsMovingOnGround())
 		{
 			bCanDash = false;
-			GetWorldTimerManager().SetTimer(DashCooldownTimerHandle, this, &ATimeGameCharacter::ResetDash, DashCooldown * 2, false);
+			GetWorldTimerManager().SetTimer(DashCooldownTimerHandle, this, &ATimeGameCharacter::ResetDash, DashCooldown * 1.75, false);
 		}
 	}
 
@@ -294,46 +285,9 @@ void ATimeGameCharacter::slowTime() {
 
 void ATimeGameCharacter::ToggleCrouch()
 {
-	if (bIsCrouching)
-		UnCrouch();
-	else
-		Crouch();
+	if (bIsCrouching) UnCrouch();
+	else Crouch();
 	bIsCrouching = !bIsCrouching;
-}
-
-void ATimeGameCharacter::StartSlide()
-{
-	if (GEngine)
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("SLIDING"));
-	if (!bIsSliding)
-	{
-		bIsSliding = true;
-		InitialVelocity = GetCharacterMovement()->Velocity;
-	}
-}
-
-void ATimeGameCharacter::StopSlide()
-{
-	bIsSliding = false;
-	if (!bIsCrouching)
-	{
-		Crouch();
-		bIsCrouching = true;
-	}
-}
-
-void ATimeGameCharacter::HandleSlide(float DeltaTime)
-{
-	FVector
-		CurrentVelocity = GetCharacterMovement()->Velocity,
-		Deceleration = -InitialVelocity.GetSafeNormal() * DecelerationRate * DeltaTime,
-		NewVelocity = CurrentVelocity;
-	if (FVector::DotProduct(NewVelocity, InitialVelocity) <= 0)
-	{
-		NewVelocity = FVector::ZeroVector;
-		StopSlide();
-	}
-	GetCharacterMovement()->Velocity = NewVelocity;
 }
 
 void ATimeGameCharacter::StartMantle()
@@ -342,23 +296,21 @@ void ATimeGameCharacter::StartMantle()
 	{
 		bIsMantling = true;
 		LedgeLocation = GetActorLocation() + FVector(0, 0, GetCapsuleComponent()->GetScaledCapsuleHalfHeight());
+		// TODO: Play matling anim here
 	}
 }
 
-void ATimeGameCharacter::StopMantle()
-{
-	bIsMantling = false;
-}
+void ATimeGameCharacter::StopMantle() { bIsMantling = false; }
 
 void ATimeGameCharacter::HandleMantle(float DeltaTime)
 {
 	FVector
 		CurrentLocation = GetActorLocation(),
 		TargetLocation = LedgeLocation,
-		NewLocation = FMath::VInterpTo(CurrentLocation, TargetLocation, DeltaTime, 600);
+		NewLocation = FMath::VInterpTo(CurrentLocation, TargetLocation, DeltaTime, 300);
 	SetActorLocation(NewLocation);
 
-	if (FVector::Dist(NewLocation, TargetLocation) < 1.0f)
+	if (FVector::Dist(NewLocation, TargetLocation) < .33333333333333333333333333333333333333333333333333333333f)
 		StopMantle();
 }
 
@@ -368,28 +320,34 @@ void ATimeGameCharacter::InitializeStateMachine()
 	StateMachine->AddStateToCache(FGameplayTag::RequestGameplayTag(FName("PlayerState.Ground.Run")), NewObject<UPlayerRun>(this));
 }
 
-void ATimeGameCharacter::ResetDash()
+void ATimeGameCharacter::ResetDash() { bCanDash = true; }
+
+void ATimeGameCharacter::EnterCoyoteTime()
 {
-	bCanDash = true;
+	bIsInCoyoteTime = true;
+
+	// Start the coyote time timer
+	GetWorld()->GetTimerManager().SetTimer(CoyoteTimeTimerHandle, this, &ATimeGameCharacter::ExitCoyoteTime, CoyoteTimeDuration, false);
 }
 
-bool ATimeGameCharacter::IsGrounded() const
+void ATimeGameCharacter::ExitCoyoteTime()
 {
-	// Check if the character is moving on the ground using collision detection
-	if (GetCharacterMovement()->IsMovingOnGround())
-		return true;
+	bIsInCoyoteTime = false;
+}
 
-	// Perform a raycast to check the distance to the ground
-	FVector Start = GetActorLocation();
-	FVector End = Start - FVector(0, 0, 100.0f); // Adjust the distance as needed
+bool ATimeGameCharacter::CanJump() const
+{
+	// Allow jumping during coyote time or while on the ground
+	return Super::CanJump() || bIsInCoyoteTime;
+}
 
-	FHitResult HitResult;
-	FCollisionQueryParams Params;
-	Params.AddIgnoredActor(this);
+void ATimeGameCharacter::Landed(const FHitResult& Hit)
+{
+	Super::Landed(Hit);
 
-	bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, Params);
-
-	return bHit;
+	// Reset coyote time when landing
+	bIsInCoyoteTime = false;
+	GetWorld()->GetTimerManager().ClearTimer(CoyoteTimeTimerHandle);
 }
 
 bool ATimeGameCharacter::DetectLedge(FVector& OutLedgeLocation, FVector& OutLedgeNormal)
@@ -397,7 +355,7 @@ bool ATimeGameCharacter::DetectLedge(FVector& OutLedgeLocation, FVector& OutLedg
 	FVector
 		Start = GetActorLocation(),
 		ForwardVector = GetActorForwardVector(),
-		End = Start + (ForwardVector * 100.0f);
+		End = Start + (ForwardVector * 66.66666666666666666666666666666666666666666666666666f);
 	FHitResult HitResult;
 	FCollisionQueryParams Params;
 	Params.AddIgnoredActor(this);

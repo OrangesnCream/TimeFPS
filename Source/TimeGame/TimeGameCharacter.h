@@ -58,6 +58,14 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Crouch) FVector CrouchEyeOffset;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Crouch) float CrouchSpeed;
 
+	// Coyote Time Variables
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Jumping") float CoyoteTimeDuration = 0.2f;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Jumping") bool bIsInCoyoteTime = false;
+
+	// Sliding-related variables
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sliding") float SlideDeceleration;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sliding") float MinSlideSpeed;
+
 	/** Returns Mesh1P subobject **/
 	USkeletalMeshComponent* GetMesh1P() const { return Mesh1P; }
 	/** Returns FirstPersonCameraComponent subobject **/
@@ -94,11 +102,6 @@ protected:
 	// Crouch
 	void ToggleCrouch();
 
-	// Slide
-	void StartSlide();
-	void StopSlide();
-	void HandleSlide(float DeltaTime);
-
 	// Mantling
 	void StartMantle();
 	void StopMantle();
@@ -110,18 +113,30 @@ protected:
 private:
 	void InitializeStateMachine();
 	void ResetDash();
-	bool IsGrounded() const;
+	void EnterCoyoteTime();
+	void ExitCoyoteTime();
+	bool CanJump() const;
+	void Landed(const FHitResult& Hit);
 	bool DetectLedge(FVector& OutLedgeLocation, FVector& OutLedgeNormal);
 
-	bool bCanDash, bIsCrouching, bIsSprinting, bIsSliding, bIsMantling;
+	bool
+		bCanDash,
+		bIsCrouching,
+		bIsSprinting,
+		bIsMantling,
+		bIsSliding;
 	double maxWalkSpeedReset;
 	FGameplayTag CurrentStateTag;
 
 	// Timer handle for dash cooldown
-	FTimerHandle DashCooldownTimerHandle;
-
-	FVector InitialVelocity, LedgeLocation, LedgeNormal;
-	float DecelerationRate;
+	FTimerHandle
+		DashCooldownTimerHandle,
+		CoyoteTimeTimerHandle;
+	FVector
+		InitialVelocity,
+		LedgeLocation,
+		LedgeNormal;
+	FVector2D MoveVector;
 
 };
 
