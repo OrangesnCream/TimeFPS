@@ -5,7 +5,7 @@
 #include "Engine/World.h"
 #include "EngineUtils.h"
 #include "Engine/StaticMeshActor.h"
-//#include "../TimeGameProjectile.h"
+#include "../TimeGameProjectile.h"
 #include "../TimeGameCharacter.h"
 
 // Sets default values
@@ -57,7 +57,7 @@ void ATimeManager::HandleActorSpawned(AActor* SpawnedActor)
    // {
         ActorsToAffect.Add(SpawnedActor);
         if (abilityActive) {
-            if (/*SpawnedActor->IsA(ATimeGameProjectile::StaticClass())*/ false) {
+            if (SpawnedActor->IsA(ATimeGameProjectile::StaticClass())) {
                 SpawnedActor->CustomTimeDilation = bulletTime;
             }
             else if (SpawnedActor->IsA(ATimeGameCharacter::StaticClass())) {
@@ -113,7 +113,7 @@ void ATimeManager::GlobalActorSlowdown()
     abilityActive = true;
     for (AActor* Actor : ActorsToAffect)
     {//loop that applies slow down
-        if (/*Actor->IsA(ATimeGameProjectile::StaticClass())*/false) {
+        if (Actor->IsA(ATimeGameProjectile::StaticClass())) {
             Actor->CustomTimeDilation = bulletTime;
         }
         else if (Actor->IsA(ATimeGameCharacter::StaticClass())) {
