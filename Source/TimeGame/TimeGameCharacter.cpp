@@ -17,6 +17,10 @@
 #include "PlayerIdle.h"
 #include "PlayerRun.h"
 #include "TimerManager.h"
+//ai
+#include "Perception/AIPerceptionStimuliSourceComponent.h"
+#include "Perception/AISense_Sight.h"
+
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
 //////////////////////////////////////////////////////////////////////////
@@ -43,6 +47,11 @@ ATimeGameCharacter::ATimeGameCharacter()
 	Mesh1P->SetRelativeLocation(FVector(-30.f, 0.f, -150.f));
 
 	maxWalkSpeedReset = GetCharacterMovement()->MaxWalkSpeed;
+
+	//ai code
+	SetupStimulusSource();
+
+
 
 	PrimaryActorTick.bCanEverTick = true;
 }
@@ -207,4 +216,13 @@ void ATimeGameCharacter::InitializeStateMachine()
 void ATimeGameCharacter::ResetDash()
 {
 	bCanDash = true;
+}
+
+//**** code for AI detection ****
+void ATimeGameCharacter::SetupStimulusSource() {
+	StimulusSource = CreateDefaultSubobject<UAIPerceptionStimuliSourceComponent>(TEXT("Stimulus"));
+	if (StimulusSource) {
+		StimulusSource->RegisterForSense(TSubclassOf<UAISense_Sight>());
+		StimulusSource->RegisterWithPerceptionSystem();
+	}
 }

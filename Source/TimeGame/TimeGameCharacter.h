@@ -101,5 +101,9 @@ private:
 	// Timer handle for dash cooldown
 	FTimerHandle DashCooldownTimerHandle;
 
+	class UAIPerceptionStimuliSourceComponent* StimulusSource;
+	void SetupStimulusSource();
+
+
 };
 
