@@ -29,9 +29,9 @@ void ANPC_AIController::SetupPerceptionSystem() {
 	SightConfig = CreateDefaultSubobject<UAISenseConfig_Sight>(TEXT("Sight Config"));
 	if (SightConfig) {
 		SetPerceptionComponent(*CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("Perception Component")));
-		SightConfig->SightRadius = 500.0f;
+		SightConfig->SightRadius = 1000.0f;
 		SightConfig->LoseSightRadius = SightConfig->SightRadius + 25.0f;
-		SightConfig->PeripheralVisionAngleDegrees = 90.0;
+		SightConfig->PeripheralVisionAngleDegrees = 100.0;
 		SightConfig->SetMaxAge(5.0f);
 		SightConfig->AutoSuccessRangeFromLastSeenLocation = 520.0f;
 		SightConfig->DetectionByAffiliation.bDetectEnemies = true;
@@ -48,6 +48,6 @@ void ANPC_AIController::SetupPerceptionSystem() {
 void ANPC_AIController::OnTargetDetected(AActor* Actor, FAIStimulus const Stimulus) {
 	if (auto* const ch = Cast<ATimeGameCharacter>(Actor)) {
 		GetBlackboardComponent()->SetValueAsBool("CanSeePlayer",Stimulus.WasSuccessfullySensed());
-	
+		playerDetected=Stimulus.WasSuccessfullySensed();
 	}
 }

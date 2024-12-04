@@ -90,10 +90,19 @@ public:
 	ATimeManager* timeManager;
 	void slowTime();
 
+	//health functions
+	int setHealth(int newHealth);//returns new health
+	int getHealth();
+
+
 private:
+
+	//health
+	int playerHealth;
+
+	//movement
 	void InitializeStateMachine();
 	void ResetDash();
-
 	bool bCanDash;
 	double maxWalkSpeedReset;
 	FGameplayTag CurrentStateTag;

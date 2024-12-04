@@ -50,6 +50,8 @@ ATimeGameCharacter::ATimeGameCharacter()
 
 	//ai code
 	SetupStimulusSource();
+	//health code
+	playerHealth = 10;
 
 
 
@@ -205,6 +207,22 @@ void ATimeGameCharacter::slowTime() {
 	if (timeManager) {
 		timeManager->GlobalActorSlowdown();
 	}
+}
+
+//health functions
+int ATimeGameCharacter::setHealth(int newHealth)
+{
+	if (newHealth <= 0) {
+		UE_LOG(LogTemp, Warning, TEXT("PLAYER DEAD, ADD NEW FUNCTIONALITY WITH THIS TRIGGER LATER "));
+		return 0;
+	}
+	playerHealth = newHealth;
+	return playerHealth;
+}
+
+int ATimeGameCharacter::getHealth()
+{
+	return playerHealth;
 }
 
 void ATimeGameCharacter::InitializeStateMachine()
