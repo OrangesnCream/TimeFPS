@@ -42,64 +42,99 @@ class ATimeGameCharacter : public ACharacter
 public:
 	ATimeGameCharacter();
 
-protected:
-	virtual void BeginPlay();
-	virtual void Tick(float DeltaTime) override;
-
-public:
-		
 	/** Look Input Action */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	class UInputAction* LookAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true")) class UInputAction* LookAction;
 
 	// State Machine for managing character states
 	UPROPERTY() UBasicStateMachine* StateMachine;
 
 	// Dash variables
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dash")
-	float DashDistance;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dash") float DashDistance;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dash") float DashCooldown;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dash")
-	float DashCooldown;
+	// Crouch variables
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Crouch) FVector CrouchEyeOffset;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Crouch) float CrouchSpeed;
+
+	// Coyote Time Variables
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Jumping") float CoyoteTimeDuration = 0.2f;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Jumping") bool bIsInCoyoteTime = false;
+
+	// Sliding-related variables
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sliding") float SlideDeceleration;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sliding") float MinSlideSpeed;
+
+	/** Returns Mesh1P subobject **/
+	USkeletalMeshComponent* GetMesh1P() const { return Mesh1P; }
+	/** Returns FirstPersonCameraComponent subobject **/
+	UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
+
+	// Time Dilation
+	ATimeManager* FindTimeManager();
+	ATimeManager* timeManager;
+	void slowTime();
 
 protected:
+	virtual void BeginPlay();
+	virtual void Tick(float DeltaTime) override;
+
+	// APawn interface
+	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
+	// End of APawn interface
+
+	void OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;
+	void OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;
+	void CalcCamera(float DeltaTime, struct FMinimalViewInfo& OutResult) override;
+
 	/** Called for movement input */
 	void Move(const FInputActionValue& Value);
 
 	/** Allows Character to Sprint */
+	void ToggleSprint();
 	void Sprint();
 	void StopSprinting();
 
 	// Dash
 	void Dash();
 
+	// Crouch
+	void ToggleCrouch();
+
+	// Mantling
+	void StartMantle();
+	void StopMantle();
+	void HandleMantle(float DeltaTime);
+
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
-
-protected:
-	// APawn interface
-	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
-	// End of APawn interface
-
-public:
-	/** Returns Mesh1P subobject **/
-	USkeletalMeshComponent* GetMesh1P() const { return Mesh1P; }
-	/** Returns FirstPersonCameraComponent subobject **/
-	UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
-	ATimeManager* FindTimeManager();
-	ATimeManager* timeManager;
-	void slowTime();
 
 private:
 	void InitializeStateMachine();
 	void ResetDash();
+	void EnterCoyoteTime();
+	void ExitCoyoteTime();
+	bool CanJump() const;
+	void Landed(const FHitResult& Hit);
+	bool DetectLedge(FVector& OutLedgeLocation, FVector& OutLedgeNormal);
 
-	bool bCanDash;
+	bool
+		bCanDash,
+		bIsCrouching,
+		bIsSprinting,
+		bIsMantling,
+		bIsSliding;
 	double maxWalkSpeedReset;
 	FGameplayTag CurrentStateTag;
 
 	// Timer handle for dash cooldown
-	FTimerHandle DashCooldownTimerHandle;
+	FTimerHandle
+		DashCooldownTimerHandle,
+		CoyoteTimeTimerHandle;
+	FVector
+		InitialVelocity,
+		LedgeLocation,
+		LedgeNormal;
+	FVector2D MoveVector;
 
 	class UAIPerceptionStimuliSourceComponent* StimulusSource;
 	void SetupStimulusSource();
