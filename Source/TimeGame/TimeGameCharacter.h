@@ -73,6 +73,9 @@ public:
 	ATimeManager* FindTimeManager();
 	ATimeManager* timeManager;
 	void slowTime();
+	//health functions
+	int setHealth(int newHealth);//returns new health
+	int getHealth();
 
 protected:
 	virtual void BeginPlay();
@@ -109,6 +112,11 @@ protected:
 	void Look(const FInputActionValue& Value);
 
 private:
+
+	//health
+	int playerHealth;
+
+	//movement
 	void InitializeStateMachine();
 	void ResetDash();
 	void EnterCoyoteTime();

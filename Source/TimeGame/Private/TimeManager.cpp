@@ -54,16 +54,21 @@ void ATimeManager::Tick(float DeltaTime)
 void ATimeManager::HandleActorSpawned(AActor* SpawnedActor)
 {
    // if (SpawnedActor && SpawnedActor->IsA(/*add something here IDK*/ ))  // Replace with your actor filtering logic
-   // {
+   // { 
+        UE_LOG(LogTemp,Warning, TEXT("spawned actor detected"));
         ActorsToAffect.Add(SpawnedActor);
         if (abilityActive) {
             if (SpawnedActor->IsA(ATimeGameProjectile::StaticClass())) {
                 SpawnedActor->CustomTimeDilation = bulletTime;
+                UE_LOG(LogTemp,Warning, TEXT("new bullet slowed down"));
+
+
             }
             else if (SpawnedActor->IsA(ATimeGameCharacter::StaticClass())) {
                 SpawnedActor->CustomTimeDilation = playerTime;
             }
             else {
+                UE_LOG(LogTemp, Warning, TEXT(" other slowed down"));
                 SpawnedActor->CustomTimeDilation = globalTime;
             }
         }
