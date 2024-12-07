@@ -12,8 +12,10 @@ UBTTask_ChasePlayer::UBTTask_ChasePlayer(FObjectInitializer const& ObjectInitial
 EBTNodeResult::Type UBTTask_ChasePlayer::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) {
 	if (auto* const cont = Cast<ANPC_AIController>(OwnerComp.GetAIOwner())) {
 		auto const PlayerLocation = OwnerComp.GetBlackboardComponent()->GetValueAsVector(GetSelectedBlackboardKey());
-		UAIBlueprintHelperLibrary::SimpleMoveToLocation(cont, PlayerLocation);
-
+		//if (OwnerComp.GetBlackboardComponent()->GetValueAsBool("InRange") != true) {
+			//UAIBlueprintHelperLibrary::SimpleMoveToLocation(cont, PlayerLocation);
+			UAIBlueprintHelperLibrary::CreateMoveToProxyObject(cont, cont->GetPawn(), PlayerLocation, nullptr, 500.0f, true);
+		//}
 		FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
 		return EBTNodeResult::Succeeded;
 

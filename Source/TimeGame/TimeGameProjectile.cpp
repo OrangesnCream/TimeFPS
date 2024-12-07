@@ -36,7 +36,7 @@ ATimeGameProjectile::ATimeGameProjectile()
 void ATimeGameProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
 	// Only add impulse and destroy projectile if we hit a physics
-	UE_LOG(LogTemp, Warning, TEXT("checking if timegameprojectile script is active onhit"));
+	
 	//OtherActor->IsA(ATimeGameCharacter::StaticClass())
 	if ((OtherActor != nullptr) && (OtherActor != this) && (OtherComp != nullptr) && OtherActor->IsA(ATimeGameCharacter::StaticClass()))
 	{
@@ -48,13 +48,13 @@ void ATimeGameProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor
 	}
 	if ((OtherActor != nullptr) && (OtherActor != this) && (OtherComp != nullptr) && OtherActor->IsA(ATimeGameProjectile::StaticClass()))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("bullet killed bullet"));
+		
 		
 		Destroy();
 	}
 	if ((OtherActor != nullptr) && (OtherActor != this) && (OtherComp != nullptr) && OtherActor->IsA(ANPC::StaticClass()))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("bullet hit NPC"));
+		
 
 		Destroy();
 	}
