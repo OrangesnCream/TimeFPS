@@ -4,7 +4,7 @@
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Components/SphereComponent.h"
 #include "../TimeGameCharacter.h"
-
+#include "NPC.h"
 ATimeGameProjectile::ATimeGameProjectile() 
 {
 	UE_LOG(LogTemp, Warning, TEXT("checking if timegameprojectile script is active constructor"));
@@ -40,10 +40,22 @@ void ATimeGameProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor
 	//OtherActor->IsA(ATimeGameCharacter::StaticClass())
 	if ((OtherActor != nullptr) && (OtherActor != this) && (OtherComp != nullptr) && OtherActor->IsA(ATimeGameCharacter::StaticClass()))
 	{
-		OtherComp->AddImpulseAtLocation(GetVelocity() * 100.0f, GetActorLocation());
+		//OtherComp->AddImpulseAtLocation(GetVelocity() * 100.0f, GetActorLocation());
 		ATimeGameCharacter* player = dynamic_cast<ATimeGameCharacter*>(OtherActor);
 		int health=player->getHealth();
 		player->setHealth(health-1);
+		Destroy();
+	}
+	if ((OtherActor != nullptr) && (OtherActor != this) && (OtherComp != nullptr) && OtherActor->IsA(ATimeGameProjectile::StaticClass()))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("bullet killed bullet"));
+		
+		Destroy();
+	}
+	if ((OtherActor != nullptr) && (OtherActor != this) && (OtherComp != nullptr) && OtherActor->IsA(ANPC::StaticClass()))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("bullet hit NPC"));
+
 		Destroy();
 	}
 }
