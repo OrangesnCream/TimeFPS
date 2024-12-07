@@ -149,8 +149,8 @@ void ATimeGameCharacter::OnStartCrouch(float HalfHeightAdjust, float ScaledHalfH
 		return;
 
 	float StartBaseEyeHeight = BaseEyeHeight;
-	Super::OnStartCrouch(HalfHeightAdjust, ScaledHalfHeightAdjust);
-	CrouchEyeOffset.Z += StartBaseEyeHeight - BaseEyeHeight + HalfHeightAdjust;
+	Super::OnStartCrouch(HalfHeightAdjust * .66, ScaledHalfHeightAdjust);
+	CrouchEyeOffset.Z += StartBaseEyeHeight - BaseEyeHeight + (HalfHeightAdjust * .66);
 	FirstPersonCameraComponent->SetRelativeLocation(FVector(0, 0, BaseEyeHeight), false);
 }
 
@@ -160,8 +160,8 @@ void ATimeGameCharacter::OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHei
 		return;
 
 	float StartBaseEyeHeight = BaseEyeHeight;
-	Super::OnEndCrouch(HalfHeightAdjust, ScaledHalfHeightAdjust);
-	CrouchEyeOffset.Z += StartBaseEyeHeight - BaseEyeHeight - HalfHeightAdjust;
+	Super::OnEndCrouch(HalfHeightAdjust * .66, ScaledHalfHeightAdjust);
+	CrouchEyeOffset.Z += StartBaseEyeHeight - BaseEyeHeight - (HalfHeightAdjust * .66);
 	FirstPersonCameraComponent->SetRelativeLocation(FVector(0, 0, BaseEyeHeight), false);
 }
 
@@ -274,11 +274,16 @@ void ATimeGameCharacter::StartMantle()
 	{
 		bIsMantling = true;
 		LedgeLocation = GetActorLocation() + FVector(0, 0, GetCapsuleComponent()->GetScaledCapsuleHalfHeight());
+		Crouch();
 		// TODO: Play matling anim here
 	}
 }
 
-void ATimeGameCharacter::StopMantle() { bIsMantling = false; }
+void ATimeGameCharacter::StopMantle()
+{
+	bIsMantling = false;
+	UnCrouch();
+}
 
 void ATimeGameCharacter::HandleMantle(float DeltaTime)
 {
