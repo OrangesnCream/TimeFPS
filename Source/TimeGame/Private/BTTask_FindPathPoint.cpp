@@ -14,12 +14,17 @@ EBTNodeResult::Type UBTTask_FindPathPoint::ExecuteTask(UBehaviorTreeComponent& O
 		if (auto* const bc = OwnerComp.GetBlackboardComponent()) {
 			auto const Index = bc->GetValueAsInt(GetSelectedBlackboardKey());
 			if (auto* npc = Cast<ANPC>(cont->GetPawn())) {
-				auto const Point= npc->GetPatrolPath()->getPatrolPoint(Index);
-				auto const GlobalPoint = npc->GetPatrolPath()->GetActorTransform().TransformPosition(Point);
-
-				bc->SetValueAsVector(PatrolPathVectorKey.SelectedKeyName, GlobalPoint);
-				FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
-				return EBTNodeResult::Succeeded;
+				if (auto const Point = npc->GetPatrolPath()->getPatrolPoint(Index)) {
+					if (auto const GlobalPoint = npc->GetPatrolPath()->GetActorTransform().TransformPosition(Point)) {
+						bc->SetValueAsVector(PatrolPathVectorKey.SelectedKeyName, GlobalPoint);
+						FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
+						return EBTNodeResult::Succeeded;
+					
+					}
+					
+				
+				}
+				
 			}
 		}
 	}
