@@ -37,7 +37,7 @@ public:
 private:
 	//add values here later for preset changes
 	//these values will be used to set the 
-	float globalTime=0.3;
+	float globalTime=0.2;
 	float playerTime=1.0;
 	float enemyTime=0.3;
 	float bulletTime=0.06;

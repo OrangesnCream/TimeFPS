@@ -23,10 +23,10 @@ EBTNodeResult::Type UBTTask_CheckPlayerDistance::ExecuteTask(UBehaviorTreeCompon
 				double distance=(PlayerLocation - NPC->GetActorLocation()).Size();
 				if (distance < setDistance) {
 					OwnerComp.GetBlackboardComponent()->SetValueAsBool(GetSelectedBlackboardKey(), true);
-					UE_LOG(LogTemp, Warning, TEXT("in range set to true"));
+					//UE_LOG(LogTemp, Warning, TEXT("in range set to true"));
 				}
 				else {
-					UE_LOG(LogTemp, Warning, TEXT("in range set to false"));
+					//UE_LOG(LogTemp, Warning, TEXT("in range set to false"));
 					OwnerComp.GetBlackboardComponent()->SetValueAsBool(GetSelectedBlackboardKey(), false);
 				}
 				FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);

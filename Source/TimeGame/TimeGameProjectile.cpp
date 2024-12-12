@@ -44,6 +44,8 @@ void ATimeGameProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor
 		ATimeGameCharacter* player = dynamic_cast<ATimeGameCharacter*>(OtherActor);
 		int health=player->getHealth();
 		player->setHealth(health-1);
+
+		UE_LOG(LogTemp, Warning, TEXT("player hit registered "));
 		Destroy();
 	}
 	if ((OtherActor != nullptr) && (OtherActor != this) && (OtherComp != nullptr) && OtherActor->IsA(ATimeGameProjectile::StaticClass()))
@@ -55,7 +57,7 @@ void ATimeGameProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor
 	if ((OtherActor != nullptr) && (OtherActor != this) && (OtherComp != nullptr) && OtherActor->IsA(ANPC::StaticClass()))
 	{
 		
-
+		UE_LOG(LogTemp, Warning, TEXT("AI hit registered "));
 		Destroy();
 	}
 }
